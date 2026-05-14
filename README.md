@@ -138,15 +138,71 @@ handler := middleware.Chain(
 
 ## Prometheus Metrics
 
-GoShield automatically exposes Prometheus metrics:
+GoShield provides a **zero-dependency** metrics system with Prometheus-compatible exposition format.
+
+### Setup
+
+```go
+import "github.com/atop0914/goshield/pkg/metrics"
+
+// Create a registry
+registry := metrics.NewRegistry()
+
+// Register your resilience patterns
+registry.RegisterBreaker(cb.Name(), 
+    func() int { return int(cb.State()) },
+    func() (float64, float64, uint32, uint64, uint64, uint64, uint64, uint64) {
+        m := cb.GetMetrics()
+        return m.FailureRate, m.SlowCallRate, m.TotalCalls,
+            m.TotalSuccesses, m.TotalFailures, m.TotalRejected,
+            m.TotalSlowCalls, m.StateTransitions
+    },
+)
+
+registry.RegisterRateLimiter("api-limiter", limiter.Rate, limiter.Burst)
+
+registry.RegisterBulkhead("db-pool", func() (int64, int64, int64, int64, int64) {
+    return bh.GetMetricsForCollection()
+})
+
+// Serve via HTTP
+http.Handle("/metrics", metrics.Handler(registry))
+```
+
+### Exposed Metrics
 
 ```
-goshield_circuit_breaker_state{name="api"} 0
-goshield_circuit_breaker_calls_total{name="api",result="success"} 100
-goshield_circuit_breaker_calls_total{name="api",result="failure"} 5
-goshield_circuit_breaker_failures_total{name="api"} 5
-goshield_rate_limiter_requests_total{name="api",result="allowed"} 1000
-goshield_bulkhead_active{name="api"} 10
+# Circuit Breaker
+goshield_breaker_state{name="api",state="closed"} 1
+goshield_breaker_failure_rate{name="api"} 10
+goshield_breaker_slow_call_rate{name="api"} 5
+goshield_breaker_calls_total{name="api"} 100
+goshield_breaker_successes_total{name="api"} 90
+goshield_breaker_failures_total{name="api"} 10
+goshield_breaker_rejected_total{name="api"} 2
+goshield_breaker_slow_calls_total{name="api"} 5
+goshield_breaker_state_transitions_total{name="api"} 3
+
+# Rate Limiter
+goshield_ratelimit_rate{name="api"} 100
+goshield_ratelimit_burst{name="api"} 200
+
+# Bulkhead
+goshield_bulkhead_available_permits{name="db"} 40
+goshield_bulkhead_max_concurrent{name="db"} 50
+goshield_bulkhead_running{name="db"} 10
+goshield_bulkhead_executions_total{name="db"} 1000
+goshield_bulkhead_rejections_total{name="db"} 5
+
+# Retry
+goshield_retry_attempts_total{name="api"} 100
+goshield_retry_successes_total{name="api"} 80
+goshield_retry_retries_total{name="api"} 20
+
+# Timeout
+goshield_timeout_calls_total{name="api"} 100
+goshield_timeout_timeouts_total{name="api"} 5
+goshield_timeout_successes_total{name="api"} 95
 ```
 
 ## Comparison with Existing Solutions

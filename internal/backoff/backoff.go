@@ -6,6 +6,7 @@ import (
 	"errors"
 	"math"
 	"math/rand"
+	"sync/atomic"
 	"time"
 )
 
@@ -144,6 +145,51 @@ type RetryConfig struct {
 	RetryOn func(err error) bool
 	// OnRetry is called before each retry attempt.
 	OnRetry func(retry int, err error)
+}
+
+// RetryTracker tracks retry metrics.
+type RetryTracker struct {
+	config RetryConfig
+
+	totalAttempts uint64
+	totalSuccess  uint64
+	totalRetries  uint64
+}
+
+// NewRetryTracker creates a new retry tracker with the given config.
+func NewRetryTracker(config RetryConfig) *RetryTracker {
+	return &RetryTracker{config: config}
+}
+
+// Execute executes the function with retry logic and tracks metrics.
+func (rt *RetryTracker) Execute(ctx context.Context, fn func(ctx context.Context) (any, error)) (any, error) {
+	result, err := Execute(ctx, rt.config, fn)
+
+	// Update metrics
+	attempts := uint64(1) // at least one attempt
+	if rt.config.Backoff != nil {
+		attempts = uint64(rt.config.Backoff.MaxRetries() + 1)
+	}
+	atomic.AddUint64(&rt.totalAttempts, attempts)
+
+	if err == nil {
+		atomic.AddUint64(&rt.totalSuccess, 1)
+	} else if errors.Is(err, ErrMaxRetriesExceeded) {
+		// Count retries (attempts - 1)
+		if attempts > 1 {
+			atomic.AddUint64(&rt.totalRetries, attempts-1)
+		}
+	}
+
+	return result, err
+}
+
+// GetMetrics returns total attempts, total successes, total retries, current attempt.
+func (rt *RetryTracker) GetMetrics() (totalAttempts, totalSuccesses, totalRetries, currentAttempt uint64) {
+	return atomic.LoadUint64(&rt.totalAttempts),
+		atomic.LoadUint64(&rt.totalSuccess),
+		atomic.LoadUint64(&rt.totalRetries),
+		0 // current attempt is transient
 }
 
 // Execute executes the function with retry logic.
