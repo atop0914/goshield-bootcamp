@@ -148,3 +148,71 @@ func DefaultConfig(name string) Config {
         SlidingWindowType:     internal.SlidingWindowType,
     }
 }
+
+// AdaptiveConfig holds configuration for the adaptive circuit breaker.
+type AdaptiveConfig = breaker.AdaptiveConfig
+
+// AdaptiveParams holds the current adaptive parameters.
+type AdaptiveParams = breaker.AdaptiveParams
+
+// AdaptiveBreaker extends the circuit breaker with adaptive threshold adjustment.
+type AdaptiveBreaker struct {
+    internal *breaker.AdaptiveBreaker
+}
+
+// NewAdaptive creates a new adaptive circuit breaker.
+func NewAdaptive(config AdaptiveConfig) *AdaptiveBreaker {
+    return &AdaptiveBreaker{
+        internal: breaker.NewAdaptive(config),
+    }
+}
+
+// DefaultAdaptiveConfig returns sensible defaults for the adaptive circuit breaker.
+func DefaultAdaptiveConfig(name string) AdaptiveConfig {
+    return breaker.DefaultAdaptiveConfig(name)
+}
+
+// Name returns the name of the adaptive circuit breaker.
+func (ab *AdaptiveBreaker) Name() string {
+    return ab.internal.Name()
+}
+
+// State returns the current state.
+func (ab *AdaptiveBreaker) State() State {
+    return ab.internal.State()
+}
+
+// Execute wraps a function with adaptive circuit breaker protection.
+func (ab *AdaptiveBreaker) Execute(ctx context.Context, fn func(ctx context.Context) (any, error)) (any, error) {
+    return ab.internal.Execute(ctx, fn)
+}
+
+// UpdateEMAs recalculates exponential moving averages.
+func (ab *AdaptiveBreaker) UpdateEMAs() {
+    ab.internal.UpdateEMAs()
+}
+
+// GetAdaptiveParams returns the current adaptive parameters.
+func (ab *AdaptiveBreaker) GetAdaptiveParams() AdaptiveParams {
+    return ab.internal.GetAdaptiveParams()
+}
+
+// TripCount returns the number of times the breaker has tripped.
+func (ab *AdaptiveBreaker) TripCount() uint32 {
+    return ab.internal.TripCount()
+}
+
+// Reset resets the adaptive breaker to its initial state.
+func (ab *AdaptiveBreaker) Reset() {
+    ab.internal.Reset()
+}
+
+// ForceOpen forces the breaker into the open state.
+func (ab *AdaptiveBreaker) ForceOpen() {
+    ab.internal.ForceOpen()
+}
+
+// GetMetrics returns the underlying breaker's metrics.
+func (ab *AdaptiveBreaker) GetMetrics() Metrics {
+    return ab.internal.GetMetrics()
+}

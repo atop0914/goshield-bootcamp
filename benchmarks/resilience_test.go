@@ -114,3 +114,44 @@ func BenchmarkCompositeExecutor(b *testing.B) {
         })
     }
 }
+
+func BenchmarkAdaptiveBreaker_Closed(b *testing.B) {
+    ab := breaker.NewAdaptive(breaker.AdaptiveConfig{
+        Base: breaker.Config{
+            Name:                 "bench-adaptive",
+            FailureRateThreshold: 50,
+            MinimumNumberOfCalls: 1000000,
+        },
+    })
+
+    ctx := context.Background()
+    b.ResetTimer()
+
+    for i := 0; i < b.N; i++ {
+        ab.Execute(ctx, func(ctx context.Context) (any, error) {
+            return "ok", nil
+        })
+    }
+}
+
+func BenchmarkAdaptiveBreaker_WithUpdateEMAs(b *testing.B) {
+    ab := breaker.NewAdaptive(breaker.AdaptiveConfig{
+        Base: breaker.Config{
+            Name:                 "bench-adaptive",
+            FailureRateThreshold: 50,
+            MinimumNumberOfCalls: 1000000,
+        },
+    })
+
+    ctx := context.Background()
+    b.ResetTimer()
+
+    for i := 0; i < b.N; i++ {
+        ab.Execute(ctx, func(ctx context.Context) (any, error) {
+            return "ok", nil
+        })
+        if i%100 == 0 {
+            ab.UpdateEMAs()
+        }
+    }
+}

@@ -307,3 +307,145 @@ func (tc *TimeoutCollector) Collect() []MetricSample {
 		},
 	}
 }
+
+// AdaptiveBreakerCollector adapts an adaptive circuit breaker to the Collector interface.
+// It exposes both standard breaker metrics and adaptive-specific metrics.
+type AdaptiveBreakerCollector struct {
+	Name string
+	// GetState returns the current state as an int.
+	GetState func() int
+	// GetMetrics returns failure rate, slow call rate, total calls, successes, failures, rejected, slow calls, state transitions.
+	GetMetrics func() (failureRate, slowCallRate float64, totalCalls uint32, totalSuccesses, totalFailures, totalRejected, totalSlowCalls, stateTransitions uint64)
+	// GetAdaptiveParams returns failure rate EMA, latency EMA (ns), adaptive threshold, consecutive failures, trip count.
+	GetAdaptiveParams func() (failureRateEMA, adaptiveThreshold float64, latencyEMA int64, consecutiveFailures, tripCount uint32)
+}
+
+// Collect implements Collector for adaptive breaker metrics.
+func (ac *AdaptiveBreakerCollector) Collect() []MetricSample {
+	samples := make([]MetricSample, 0, 14)
+	ts := time.Now()
+	nameLabel := Label{Name: "name", Value: ac.Name}
+
+	failureRate, slowCallRate, totalCalls, totalSuccesses, totalFailures, totalRejected, totalSlowCalls, stateTransitions := ac.GetMetrics()
+	state := ac.GetState()
+
+	// Standard breaker metrics
+	samples = append(samples, MetricSample{
+		Name:      "breaker_state",
+		Labels:    []Label{nameLabel, {Name: "state", Value: stateString(state)}},
+		Value:     1,
+		Type:      Gauge,
+		Help:      "Current state of the circuit breaker (1 = active state).",
+		Timestamp: ts,
+	})
+	samples = append(samples, MetricSample{
+		Name:      "breaker_failure_rate",
+		Labels:    []Label{nameLabel},
+		Value:     failureRate,
+		Type:      Gauge,
+		Help:      "Current failure rate percentage in the sliding window.",
+		Timestamp: ts,
+	})
+	samples = append(samples, MetricSample{
+		Name:      "breaker_slow_call_rate",
+		Labels:    []Label{nameLabel},
+		Value:     slowCallRate,
+		Type:      Gauge,
+		Help:      "Current slow call rate percentage in the sliding window.",
+		Timestamp: ts,
+	})
+	samples = append(samples, MetricSample{
+		Name:      "breaker_calls_total",
+		Labels:    []Label{nameLabel},
+		Value:     float64(totalCalls),
+		Type:      Gauge,
+		Help:      "Current window call count.",
+		Timestamp: ts,
+	})
+	samples = append(samples, MetricSample{
+		Name:      "breaker_successes_total",
+		Labels:    []Label{nameLabel},
+		Value:     float64(totalSuccesses),
+		Type:      Counter,
+		Help:      "Total successful calls since creation.",
+		Timestamp: ts,
+	})
+	samples = append(samples, MetricSample{
+		Name:      "breaker_failures_total",
+		Labels:    []Label{nameLabel},
+		Value:     float64(totalFailures),
+		Type:      Counter,
+		Help:      "Total failed calls since creation.",
+		Timestamp: ts,
+	})
+	samples = append(samples, MetricSample{
+		Name:      "breaker_rejected_total",
+		Labels:    []Label{nameLabel},
+		Value:     float64(totalRejected),
+		Type:      Counter,
+		Help:      "Total rejected calls (open/half-open overflow).",
+		Timestamp: ts,
+	})
+	samples = append(samples, MetricSample{
+		Name:      "breaker_slow_calls_total",
+		Labels:    []Label{nameLabel},
+		Value:     float64(totalSlowCalls),
+		Type:      Counter,
+		Help:      "Total slow calls since creation.",
+		Timestamp: ts,
+	})
+	samples = append(samples, MetricSample{
+		Name:      "breaker_state_transitions_total",
+		Labels:    []Label{nameLabel},
+		Value:     float64(stateTransitions),
+		Type:      Counter,
+		Help:      "Total state transitions.",
+		Timestamp: ts,
+	})
+
+	// Adaptive-specific metrics
+	failureRateEMA, adaptiveThreshold, latencyEMA, consecutiveFailures, tripCount := ac.GetAdaptiveParams()
+
+	samples = append(samples, MetricSample{
+		Name:      "breaker_adaptive_failure_rate_ema",
+		Labels:    []Label{nameLabel},
+		Value:     failureRateEMA,
+		Type:      Gauge,
+		Help:      "Exponential moving average of failure rate.",
+		Timestamp: ts,
+	})
+	samples = append(samples, MetricSample{
+		Name:      "breaker_adaptive_threshold",
+		Labels:    []Label{nameLabel},
+		Value:     adaptiveThreshold,
+		Type:      Gauge,
+		Help:      "Current adaptive failure rate threshold.",
+		Timestamp: ts,
+	})
+	samples = append(samples, MetricSample{
+		Name:      "breaker_adaptive_latency_ema_ns",
+		Labels:    []Label{nameLabel},
+		Value:     float64(latencyEMA),
+		Type:      Gauge,
+		Help:      "Exponential moving average of call latency in nanoseconds.",
+		Timestamp: ts,
+	})
+	samples = append(samples, MetricSample{
+		Name:      "breaker_adaptive_consecutive_failures",
+		Labels:    []Label{nameLabel},
+		Value:     float64(consecutiveFailures),
+		Type:      Gauge,
+		Help:      "Current consecutive failure count.",
+		Timestamp: ts,
+	})
+	samples = append(samples, MetricSample{
+		Name:      "breaker_adaptive_trip_count",
+		Labels:    []Label{nameLabel},
+		Value:     float64(tripCount),
+		Type:      Counter,
+		Help:      "Total number of times the adaptive breaker has tripped.",
+		Timestamp: ts,
+	})
+
+	return samples
+}
