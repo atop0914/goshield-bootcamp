@@ -18,6 +18,7 @@ GoShield provides composable resilience decorators inspired by [Resilience4j](ht
 - 📊 **Prometheus Metrics** - Built-in observability for all patterns
 - 🌐 **HTTP Middleware** - Ready-to-use middleware for net/http
 - 🔗 **Composable** - Chain patterns together for complex resilience strategies
+- ⚙️ **Configuration** - JSON config with env overrides, validation, and hot-reload
 
 ## Installation
 
@@ -204,6 +205,86 @@ goshield_timeout_calls_total{name="api"} 100
 goshield_timeout_timeouts_total{name="api"} 5
 goshield_timeout_successes_total{name="api"} 95
 ```
+
+## Configuration
+
+GoShield provides a **zero-dependency** configuration system with JSON file loading, environment variable overrides, validation, and hot-reload support.
+
+### Load from JSON File
+
+```go
+import "github.com/atop0914/goshield/pkg/config"
+
+cfg, err := config.LoadFile("goshield.json")
+if err != nil {
+    log.Fatal(err)
+}
+
+// Validate
+if err := cfg.Validate(); err != nil {
+    log.Fatal(err)
+}
+
+// Use config values
+cb := breaker.New(breaker.Config{
+    Name:                 cfg.CircuitBreaker.Name,
+    FailureRateThreshold: cfg.CircuitBreaker.FailureRateThreshold,
+    Timeout:              cfg.CircuitBreaker.Timeout(),
+    MinimumNumberOfCalls: cfg.CircuitBreaker.MinimumNumberOfCalls,
+    SlidingWindowSize:    cfg.CircuitBreaker.SlidingWindowSize,
+})
+```
+
+### Environment Variable Overrides
+
+All config values can be overridden via environment variables with the prefix `GOSHIELD_`:
+
+```bash
+GOSHIELD_CIRCUIT_BREAKER_TIMEOUT_SECONDS=30
+GOSHIELD_RATE_LIMITER_RATE=500
+GOSHIELD_TIMEOUT_DURATION_MS=10000
+GOSHIELD_BULKHEAD_MAX_CONCURRENT=50
+GOSHIELD_METRICS_ENABLED=false
+GOSHIELD_HTTP_ADDR=:9090
+```
+
+```go
+cfg := config.DefaultConfig()
+cfg.ApplyEnvOverrides()
+```
+
+### Hot Reload
+
+Watch a config file for live changes:
+
+```go
+w, err := config.NewWatcher("goshield.json", func(cfg *config.Config) {
+    // Reconfigure your components with new settings
+    limiter.SetRate(cfg.RateLimiter.Rate)
+    breaker.SetTimeout(cfg.CircuitBreaker.Timeout())
+})
+w.Start()
+defer w.Stop()
+```
+
+### Presets
+
+```go
+// Conservative: lower thresholds, more sensitive to failures
+cfg := config.PresetConservative()
+
+// Aggressive: higher throughput, less sensitive
+cfg := config.PresetAggressive()
+
+// Custom
+cfg := config.DefaultConfig()
+cfg.RateLimiter.Rate = 1000
+cfg.CircuitBreaker.FailureRateThreshold = 30
+```
+
+### JSON Config Structure
+
+See [`examples/config/goshield.json`](examples/config/goshield.json) for a complete example.
 
 ## Comparison with Existing Solutions
 
