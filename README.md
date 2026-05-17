@@ -7,6 +7,8 @@
 
 GoShield provides composable resilience decorators inspired by [Resilience4j](https://github.com/resilience4j/resilience4j) (Java) and [Polly](https://github.com/App-vNext/Polly) (.NET), bringing the same level of resilience tooling to Go.
 
+> **📖 [Advanced Usage Guide](docs/guide.md)** — Composition patterns, production integration, custom strategies, performance tuning, and more.
+
 ## Features
 
 - 🔌 **Circuit Breaker** - Prevent cascading failures with configurable thresholds
@@ -107,6 +109,36 @@ executor := resilience.NewExecutor(
 result, err := executor.Execute(ctx, func(ctx context.Context) (any, error) {
     return myService.Call(ctx)
 })
+```
+
+### Adaptive Circuit Breaker
+
+Automatically adjusts failure thresholds based on observed latency and error rates:
+
+```go
+ab := breaker.NewAdaptive(breaker.AdaptiveConfig{
+    Base: breaker.Config{
+        Name:                 "flaky-service",
+        FailureRateThreshold: 50,
+        MinimumNumberOfCalls: 10,
+        Timeout:              30 * time.Second,
+    },
+    FailureRateEMAAlpha:     0.5,   // React quickly to failure changes
+    MinFailureRateThreshold: 20,    // Lower bound
+    MaxFailureRateThreshold: 80,    // Upper bound
+    ConsecutiveFailureLimit: 5,     // Trip after 5 consecutive failures
+    SlowCallMultiplier:      2.0,   // Slow = 2× average latency
+    TimeoutMultiplier:       1.5,   // Exponential timeout backoff on repeated trips
+})
+
+result, err := ab.Execute(ctx, func(ctx context.Context) (any, error) {
+    return myService.Call(ctx)
+})
+
+// Periodically update exponential moving averages
+ab.UpdateEMAs()
+params := ab.GetAdaptiveParams()
+fmt.Printf("Threshold: %.1f%%, Latency EMA: %v\n", params.AdaptiveThreshold, params.LatencyEMA)
 ```
 
 ## Backoff Strategies
@@ -299,6 +331,34 @@ See [`examples/config/goshield.json`](examples/config/goshield.json) for a compl
 | HTTP Middleware | ✅ | ❌ | ❌ | ❌ |
 | Prometheus | ✅ | ❌ | ❌ | ❌ |
 | Composable | ✅ | ❌ | ❌ | ❌ |
+
+## Examples
+
+Run the included examples:
+
+```bash
+# Basic HTTP server with middleware
+go run ./examples/http
+
+# Composite executor with multiple patterns
+go run ./examples/compose
+
+# Metrics collection and Prometheus endpoint
+go run ./examples/metrics
+
+# Configuration management
+go run ./examples/config
+go run ./examples/config -preset conservative
+go run ./examples/config -file examples/config/goshield.json -json
+
+# Advanced: adaptive breaker, graceful degradation, full observability
+go run ./examples/advanced
+```
+
+## Documentation
+
+- **[Advanced Usage Guide](docs/guide.md)** — Composition patterns, production integration, custom strategies, error handling, performance tuning
+- **[Go Reference](https://pkg.go.dev/github.com/atop0914/goshield)** — API documentation
 
 ## License
 
