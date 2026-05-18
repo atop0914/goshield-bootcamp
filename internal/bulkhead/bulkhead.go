@@ -138,3 +138,14 @@ func (b *Bulkhead) GetMetrics() Metrics {
         TotalCompleted: b.totalCompleted,
     }
 }
+
+// GetMetricsForCollection returns raw int64 metrics for the metrics collector.
+func (b *Bulkhead) GetMetricsForCollection() (available, maxConcurrent, totalExecutions, totalRejections, currentRunning int64) {
+    b.mutex.RLock()
+    defer b.mutex.RUnlock()
+    return int64(b.config.MaxConcurrent - b.activeCount),
+        int64(b.config.MaxConcurrent),
+        int64(b.totalCalls),
+        int64(b.totalRejected),
+        int64(b.activeCount)
+}

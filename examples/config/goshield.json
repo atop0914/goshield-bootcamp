@@ -1,0 +1,61 @@
+{
+  "circuit_breaker": {
+    "name": "default",
+    "max_requests": 1,
+    "timeout_seconds": 60,
+    "failure_rate_threshold": 50,
+    "slow_call_rate_threshold": 100,
+    "slow_call_duration_ms": 0,
+    "minimum_number_of_calls": 10,
+    "sliding_window_size": 100,
+    "sliding_window_type": "count"
+  },
+  "adaptive": {
+    "name": "adaptive",
+    "failure_rate_ema_alpha": 0.5,
+    "latency_ema_alpha": 0.3,
+    "min_adaptive_threshold": 20.0,
+    "max_adaptive_threshold": 80.0,
+    "consecutive_failure_limit": 5,
+    "slow_call_multiplier": 3.0,
+    "min_slow_call_duration_ms": 100,
+    "max_slow_call_duration_ms": 5000,
+    "timeout_multiplier": 2.0,
+    "max_timeout_seconds": 300,
+    "timeout_seconds": 60,
+    "failure_rate_threshold": 50,
+    "slow_call_rate_threshold": 100,
+    "minimum_number_of_calls": 10,
+    "max_requests": 1
+  },
+  "retry": {
+    "max_retries": 3,
+    "strategy": "exponential",
+    "interval_ms": 1000,
+    "max_interval_ms": 30000,
+    "multiplier": 2.0,
+    "max_duration_ms": 60000
+  },
+  "rate_limiter": {
+    "type": "token_bucket",
+    "rate": 100,
+    "burst": 200
+  },
+  "timeout": {
+    "duration_ms": 5000
+  },
+  "bulkhead": {
+    "max_concurrent": 10,
+    "max_wait_duration_ms": 5000
+  },
+  "metrics": {
+    "enabled": true,
+    "namespace": "goshield",
+    "endpoint": "/metrics"
+  },
+  "http": {
+    "enabled": true,
+    "addr": ":8080",
+    "metrics_addr": ":9090"
+  }
+}
