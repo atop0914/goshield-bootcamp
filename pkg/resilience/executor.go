@@ -2,8 +2,10 @@ package resilience
 
 import (
     "context"
+    "fmt"
+    "strings"
     "time"
-    
+
     "github.com/atop0914/goshield/internal/breaker"
     "github.com/atop0914/goshield/internal/backoff"
     "github.com/atop0914/goshield/internal/ratelimit"
@@ -74,6 +76,39 @@ func NewExecutor(opts ...Option) *Executor {
         opt(e)
     }
     return e
+}
+
+// Patterns returns the names of the configured resilience patterns.
+func (e *Executor) Patterns() []string {
+    var patterns []string
+    if e.fallbackConfig != nil {
+        patterns = append(patterns, "fallback")
+    }
+    if e.circuitBreaker != nil {
+        patterns = append(patterns, "circuit-breaker")
+    }
+    if e.retryConfig != nil {
+        patterns = append(patterns, "retry")
+    }
+    if e.rateLimiter != nil {
+        patterns = append(patterns, "rate-limiter")
+    }
+    if e.timeoutConfig != nil {
+        patterns = append(patterns, "timeout")
+    }
+    if e.bulkheadConfig != nil {
+        patterns = append(patterns, "bulkhead")
+    }
+    return patterns
+}
+
+// String returns a human-readable representation of the executor configuration.
+func (e *Executor) String() string {
+    patterns := e.Patterns()
+    if len(patterns) == 0 {
+        return "Executor(no patterns)"
+    }
+    return fmt.Sprintf("Executor(%s)", strings.Join(patterns, " → "))
 }
 
 // Execute executes the function with all configured resilience patterns.
