@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.0] - 2026-05-19
+## [1.0.0] - 2026-05-20
 
 ### Added
 - Circuit Breaker pattern with sliding window (count-based and time-based)
