@@ -4,7 +4,7 @@
 *.dll
 *.so
 *.dylib
-goshield
+/goshield
 bin/
 dist/
 
