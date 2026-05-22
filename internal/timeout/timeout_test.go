@@ -2,6 +2,7 @@ package timeout
 
 import (
     "context"
+    "sync/atomic"
     "testing"
     "time"
 )
@@ -73,12 +74,12 @@ func TestExecute_ContextCancel(t *testing.T) {
 }
 
 func TestExecute_OnTimeoutCallback(t *testing.T) {
-    var called bool
+    var called atomic.Bool
     
     config := Config{
         Duration: 50 * time.Millisecond,
         OnTimeout: func(d time.Duration) {
-            called = true
+            called.Store(true)
         },
     }
     
@@ -90,7 +91,7 @@ func TestExecute_OnTimeoutCallback(t *testing.T) {
     // Give callback time to execute
     time.Sleep(10 * time.Millisecond)
     
-    if !called {
+    if !called.Load() {
         t.Fatal("expected OnTimeout callback to be called")
     }
 }
