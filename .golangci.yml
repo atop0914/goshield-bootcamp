@@ -7,8 +7,6 @@ linters:
     - ineffassign
     - staticcheck
     - unused
-    - gofmt
-    - goimports
     - misspell
   settings:
     errcheck:
@@ -23,5 +21,9 @@ linters:
       - path: examples/
         linters:
           - errcheck
+formatters:
+  enable:
+    - gofmt
+    - goimports
 run:
   timeout: 5m
