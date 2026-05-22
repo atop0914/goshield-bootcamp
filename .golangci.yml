@@ -11,19 +11,15 @@ linters:
     misspell:
       locale: US
   exclusions:
-    rules:
-      - path: _test\.go$
-        linters:
-          - errcheck
-      - path: cmd/
-        linters:
-          - errcheck
-      - path: examples/
-        linters:
-          - errcheck
-      - path: benchmarks/
-        linters:
-          - errcheck
+    generated: lax
+    presets:
+      - std-error-handling
+      - common-false-positives
+    paths:
+      - ".*_test\.go$"
+      - "cmd/"
+      - "examples/"
+      - "benchmarks/"
 formatters:
   enable:
     - gofmt
