@@ -60,15 +60,19 @@ func (b *Bulkhead) Name() string {
 func (b *Bulkhead) Execute(ctx context.Context, fn func(ctx context.Context) (any, error)) (any, error) {
     // Try to acquire a slot
     if err := b.acquire(ctx); err != nil {
+        b.mutex.Lock()
         b.totalRejected++
+        b.mutex.Unlock()
         if b.config.OnCallRejected != nil {
             go b.config.OnCallRejected()
         }
         return nil, err
     }
     defer b.release()
-    
+
+    b.mutex.Lock()
     b.totalCalls++
+    b.mutex.Unlock()
     return fn(ctx)
 }
 

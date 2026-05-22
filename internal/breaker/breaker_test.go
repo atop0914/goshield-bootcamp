@@ -3,6 +3,7 @@ package breaker
 import (
     "context"
     "errors"
+    "sync"
     "testing"
     "time"
 )
@@ -207,9 +208,11 @@ func TestCircuitBreaker_SlowCalls(t *testing.T) {
 }
 
 func TestCircuitBreaker_StateChangeCallback(t *testing.T) {
-    var fromState, toState State
     var callbackName string
-    
+    var fromState, toState State
+    var wg sync.WaitGroup
+    wg.Add(1)
+
     cb := New(Config{
         Name:                 "test-cb",
         FailureRateThreshold: 50,
@@ -219,19 +222,20 @@ func TestCircuitBreaker_StateChangeCallback(t *testing.T) {
             callbackName = name
             fromState = from
             toState = to
+            wg.Done()
         },
     })
-    
+
     // Trip the breaker
     for i := 0; i < 3; i++ {
         cb.Execute(context.Background(), func(ctx context.Context) (any, error) {
             return nil, errors.New("failure")
         })
     }
-    
-    // Give callback time to execute
-    time.Sleep(10 * time.Millisecond)
-    
+
+    // Wait for callback to execute
+    wg.Wait()
+
     if callbackName != "test-cb" {
         t.Errorf("expected callback name 'test-cb', got '%s'", callbackName)
     }
