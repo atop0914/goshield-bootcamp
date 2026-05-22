@@ -159,9 +159,9 @@ func (r *Registry) PrometheusTextFormat() string {
 		if !seen[s.Name] {
 			seen[s.Name] = true
 			if s.Help != "" {
-				sb.WriteString(fmt.Sprintf("# HELP %s %s\n", s.Name, s.Help))
+				fmt.Fprintf(&sb, "# HELP %s %s\n", s.Name, s.Help)
 			}
-			sb.WriteString(fmt.Sprintf("# TYPE %s %s\n", s.Name, s.Type))
+			fmt.Fprintf(&sb, "# TYPE %s %s\n", s.Name, s.Type)
 		}
 
 		// Write the sample
@@ -172,13 +172,13 @@ func (r *Registry) PrometheusTextFormat() string {
 				if i > 0 {
 					sb.WriteByte(',')
 				}
-				sb.WriteString(fmt.Sprintf("%s=%q", l.Name, l.Value))
+				fmt.Fprintf(&sb, "%s=%q", l.Name, l.Value)
 			}
 			sb.WriteByte('}')
 		}
-		sb.WriteString(fmt.Sprintf(" %g", s.Value))
+		fmt.Fprintf(&sb, " %g", s.Value)
 		if !s.Timestamp.IsZero() {
-			sb.WriteString(fmt.Sprintf(" %d", s.Timestamp.UnixMilli()))
+			fmt.Fprintf(&sb, " %d", s.Timestamp.UnixMilli())
 		}
 		sb.WriteByte('\n')
 	}
