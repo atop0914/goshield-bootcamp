@@ -137,7 +137,7 @@ func NewAdaptive(config AdaptiveConfig) *AdaptiveBreaker {
 	}
 
 	ab := &AdaptiveBreaker{
-		config:          config,
+		config:           config,
 		currentThreshold: float64(config.Base.FailureRateThreshold),
 	}
 

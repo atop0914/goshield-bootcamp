@@ -293,7 +293,7 @@ func BenchmarkBulkhead_LargeConcurrent(b *testing.B) {
 
 func BenchmarkBulkhead_WithWaitDuration(b *testing.B) {
 	bh := New(Config{
-		MaxConcurrent:  1000000,
+		MaxConcurrent:   1000000,
 		MaxWaitDuration: 1 * time.Second,
 	})
 
@@ -309,7 +309,7 @@ func BenchmarkBulkhead_WithWaitDuration(b *testing.B) {
 
 func BenchmarkBulkhead_WithWaitDuration_Parallel(b *testing.B) {
 	bh := New(Config{
-		MaxConcurrent:  1000000,
+		MaxConcurrent:   1000000,
 		MaxWaitDuration: 1 * time.Second,
 	})
 

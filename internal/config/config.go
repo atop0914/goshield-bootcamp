@@ -40,32 +40,32 @@ type CircuitBreakerConfig struct {
 
 // AdaptiveConfig configures the adaptive circuit breaker.
 type AdaptiveConfig struct {
-	Name                      string  `json:"name"`
-	FailureRateEMAAlpha       float64 `json:"failure_rate_ema_alpha"`
-	LatencyEMAAlpha           float64 `json:"latency_ema_alpha"`
-	MinAdaptiveThreshold      float64 `json:"min_adaptive_threshold"`
-	MaxAdaptiveThreshold      float64 `json:"max_adaptive_threshold"`
-	ConsecutiveFailureLimit   int     `json:"consecutive_failure_limit"`
-	SlowCallMultiplier        float64 `json:"slow_call_multiplier"`
-	MinSlowCallDurationMs     int     `json:"min_slow_call_duration_ms"`
-	MaxSlowCallDurationMs     int     `json:"max_slow_call_duration_ms"`
-	TimeoutMultiplier         float64 `json:"timeout_multiplier"`
-	MaxTimeoutSeconds         int     `json:"max_timeout_seconds"`
-	TimeoutSeconds            int     `json:"timeout_seconds"`
-	FailureRateThreshold      uint8   `json:"failure_rate_threshold"`
-	SlowCallRateThreshold     uint8   `json:"slow_call_rate_threshold"`
-	MinimumNumberOfCalls      uint32  `json:"minimum_number_of_calls"`
-	MaxRequests               uint32  `json:"max_requests"`
+	Name                    string  `json:"name"`
+	FailureRateEMAAlpha     float64 `json:"failure_rate_ema_alpha"`
+	LatencyEMAAlpha         float64 `json:"latency_ema_alpha"`
+	MinAdaptiveThreshold    float64 `json:"min_adaptive_threshold"`
+	MaxAdaptiveThreshold    float64 `json:"max_adaptive_threshold"`
+	ConsecutiveFailureLimit int     `json:"consecutive_failure_limit"`
+	SlowCallMultiplier      float64 `json:"slow_call_multiplier"`
+	MinSlowCallDurationMs   int     `json:"min_slow_call_duration_ms"`
+	MaxSlowCallDurationMs   int     `json:"max_slow_call_duration_ms"`
+	TimeoutMultiplier       float64 `json:"timeout_multiplier"`
+	MaxTimeoutSeconds       int     `json:"max_timeout_seconds"`
+	TimeoutSeconds          int     `json:"timeout_seconds"`
+	FailureRateThreshold    uint8   `json:"failure_rate_threshold"`
+	SlowCallRateThreshold   uint8   `json:"slow_call_rate_threshold"`
+	MinimumNumberOfCalls    uint32  `json:"minimum_number_of_calls"`
+	MaxRequests             uint32  `json:"max_requests"`
 }
 
 // RetryConfig configures retry behavior.
 type RetryConfig struct {
-	MaxRetries      int    `json:"max_retries"`
-	Strategy        string `json:"strategy"` // "fixed", "exponential", "exponential_random", "fibonacci"
-	IntervalMs      int    `json:"interval_ms"`
-	MaxIntervalMs   int    `json:"max_interval_ms"`
-	Multiplier      float64 `json:"multiplier"`
-	MaxDurationMs   int    `json:"max_duration_ms"`
+	MaxRetries    int     `json:"max_retries"`
+	Strategy      string  `json:"strategy"` // "fixed", "exponential", "exponential_random", "fibonacci"
+	IntervalMs    int     `json:"interval_ms"`
+	MaxIntervalMs int     `json:"max_interval_ms"`
+	Multiplier    float64 `json:"multiplier"`
+	MaxDurationMs int     `json:"max_duration_ms"`
 }
 
 // RateLimiterConfig configures rate limiting.
@@ -82,7 +82,7 @@ type TimeoutConfig struct {
 
 // BulkheadConfig configures bulkhead behavior.
 type BulkheadConfig struct {
-	MaxConcurrent    int `json:"max_concurrent"`
+	MaxConcurrent     int `json:"max_concurrent"`
 	MaxWaitDurationMs int `json:"max_wait_duration_ms"`
 }
 
@@ -95,8 +95,8 @@ type MetricsConfig struct {
 
 // HTTPConfig configures HTTP middleware defaults.
 type HTTPConfig struct {
-	Enabled   bool   `json:"enabled"`
-	Addr      string `json:"addr"`      // listen address, e.g. ":8080"
+	Enabled     bool   `json:"enabled"`
+	Addr        string `json:"addr"`         // listen address, e.g. ":8080"
 	MetricsAddr string `json:"metrics_addr"` // metrics listen address
 }
 
@@ -353,7 +353,7 @@ func (c *Config) Validate() error {
 func (c *Config) DeepCopy() *Config {
 	data, _ := json.Marshal(c)
 	cp := &Config{}
-	json.Unmarshal(data, cp)
+	_ = json.Unmarshal(data, cp)
 	return cp
 }
 

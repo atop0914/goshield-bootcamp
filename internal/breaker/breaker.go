@@ -12,7 +12,7 @@ import (
 type State int
 
 const (
-	StateClosed     State = iota
+	StateClosed State = iota
 	StateOpen
 	StateHalfOpen
 	StateDisabled
@@ -358,15 +358,15 @@ func (cb *CircuitBreaker) ForceOpen() {
 }
 
 type Metrics struct {
-	FailureRate    float64
-	SlowCallRate   float64
-	TotalCalls     uint32
-	TotalSuccesses uint64
-	TotalFailures  uint64
-	TotalRejected  uint64
-	TotalSlowCalls uint64
+	FailureRate      float64
+	SlowCallRate     float64
+	TotalCalls       uint32
+	TotalSuccesses   uint64
+	TotalFailures    uint64
+	TotalRejected    uint64
+	TotalSlowCalls   uint64
 	StateTransitions uint64
-	State          State
+	State            State
 }
 
 func (cb *CircuitBreaker) GetMetrics() Metrics {

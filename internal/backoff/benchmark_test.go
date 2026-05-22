@@ -504,7 +504,7 @@ func BenchmarkFibonacci_Parallel(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		i := 0
 		for pb.Next() {
-			fibonacci(i % 20)
+			_ = fibonacci(i % 20)
 			i++
 		}
 	})

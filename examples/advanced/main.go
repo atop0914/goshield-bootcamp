@@ -181,11 +181,11 @@ func main() {
 
 	// Execute with graceful degradation
 	degradationChain := []struct {
-		name    string
-		executor *resilience.Executor
+		name        string
+		executor    *resilience.Executor
 		failureRate float64
 	}{
-		{"primary", primaryExecutor, 0.7},   // High failure rate
+		{"primary", primaryExecutor, 0.7},      // High failure rate
 		{"full-resilience", fullExecutor, 0.2}, // Low failure rate
 	}
 

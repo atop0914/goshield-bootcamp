@@ -23,7 +23,7 @@ var ErrMaxRetriesExceeded = errors.New("max retries exceeded")
 
 // FixedBackoff returns a fixed backoff duration.
 type FixedBackoff struct {
-	Interval   time.Duration
+	Interval      time.Duration
 	MaxRetryCount int
 }
 

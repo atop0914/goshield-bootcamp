@@ -30,7 +30,7 @@ func (h *metricsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(body)))
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(body))
+	_, _ = w.Write([]byte(body))
 }
 
 // CollectorFunc is an adapter to allow the use of ordinary functions as Collectors.

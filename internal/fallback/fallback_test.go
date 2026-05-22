@@ -115,19 +115,15 @@ func TestExecute_OnFallbackCallback(t *testing.T) {
 	// OnFallback is called asynchronously, give it a moment
 	// But in this test, since Fallback is called synchronously, the callback
 	// runs in a goroutine before Fallback returns
-	if !called.Load() {
-		// Give it a little time since it's a goroutine
-		// Actually the callback runs before Fallback
-		// This may or may not have completed - that's fine for async
-	}
+	// OnFallback callback runs asynchronously - result checked above
 }
 
 func TestExecute_NilFallbackNilOnFallback(t *testing.T) {
 	origErr := errors.New("original error")
 
 	config := Config{
-		Fallback:    nil,
-		OnFallback:  nil,
+		Fallback:   nil,
+		OnFallback: nil,
 	}
 
 	result, err := Execute(context.Background(), config, func(ctx context.Context) (any, error) {

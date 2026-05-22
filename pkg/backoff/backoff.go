@@ -2,18 +2,18 @@
 //
 // Example:
 //
-//    result, err := backoff.Execute(ctx, backoff.RetryConfig{
-//        Backoff: &backoff.ExponentialBackoff{
-//            InitialInterval: 100 * time.Millisecond,
-//            MaxInterval:     10 * time.Second,
-//            MaxRetryCount:   5,
-//        },
-//        RetryOn: func(err error) bool {
-//            return !errors.Is(err, context.Canceled)
-//        },
-//    }, func(ctx context.Context) (any, error) {
-//        return myService.Call(ctx)
-//    })
+//	result, err := backoff.Execute(ctx, backoff.RetryConfig{
+//	    Backoff: &backoff.ExponentialBackoff{
+//	        InitialInterval: 100 * time.Millisecond,
+//	        MaxInterval:     10 * time.Second,
+//	        MaxRetryCount:   5,
+//	    },
+//	    RetryOn: func(err error) bool {
+//	        return !errors.Is(err, context.Canceled)
+//	    },
+//	}, func(ctx context.Context) (any, error) {
+//	    return myService.Call(ctx)
+//	})
 package backoff
 
 import (
